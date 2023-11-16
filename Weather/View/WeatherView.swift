@@ -41,7 +41,7 @@ class WeatherView: UIView {
     private lazy var verticalStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.spacing = 5
+        //stackView.spacing = 5
         stackView.alignment = .center
         return stackView
     }()
@@ -111,18 +111,17 @@ class WeatherView: UIView {
     
     // MARK: - Weather Description
     
-    private lazy var weatherInfoStackView: UIStackView = {
+    private lazy var weatherDescriptionStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 5
         return stackView
     }()
     
-    private lazy var weatherIconImageView: UIImageView = {
+    private lazy var weatherIcon: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "cloud.sun.fill")?.withRenderingMode(.alwaysOriginal)
         imageView.contentMode = .scaleAspectFit
-        //imageView.tintColor = .label
         return imageView
     }()
     
@@ -135,15 +134,21 @@ class WeatherView: UIView {
         return label
     }()
     
-    // MARK: - UIView with information
+    // MARK: - Collection View with detailed info
     
-    private lazy var weatherInfoView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .white
-        view.layer.cornerRadius = 15
-        view.clipsToBounds = true
-        return view
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .white
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.layer.cornerRadius = 20
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(WeatherInfoCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        return collectionView
     }()
+    
+    let cellIdentifier = "MyCollectionViewCell"
     
     // MARK: - Init
     
@@ -173,11 +178,16 @@ class WeatherView: UIView {
         searchTextField.endEditing(true)
     }
     
+    var details: WeatherDetailInfo? {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
+    
     func updateWeatherData(name: String, temp: String, images: WeatherInfo, description: String, icon: URL?) {
         cityLabel.text = name
         degreesLabel.text = "\(temp)°C"
-        //weatherIconImageView.image = UIImage(named: icon)//UIImage(systemName: images.icon)?.withRenderingMode(.alwaysOriginal)
-        weatherIconImageView.kf.setImage(with: icon)
+        weatherIcon.kf.setImage(with: icon)
         backgroundImageView.image = UIImage(named: images.background)
         weatherDescriptionLabel.text = description//.capitalizedSentence
     }
@@ -196,9 +206,12 @@ class WeatherView: UIView {
         verticalStackView.addArrangedSubview(cityLabel)
         verticalStackView.addArrangedSubview(degreesLabel)
         
-        verticalStackView.addArrangedSubview(weatherInfoStackView)
-        weatherInfoStackView.addArrangedSubview(weatherIconImageView)
-        weatherInfoStackView.addArrangedSubview(weatherDescriptionLabel)
+        verticalStackView.addArrangedSubview(weatherDescriptionStackView)
+        weatherDescriptionStackView.addArrangedSubview(weatherIcon)
+        weatherDescriptionStackView.addArrangedSubview(weatherDescriptionLabel)
+        
+        addSubview(collectionView)
+        
     }
     
     private func applyConstraints() {
@@ -232,8 +245,14 @@ class WeatherView: UIView {
         
         verticalStackView.setCustomSpacing(30, after: searchStackView)
         
-        weatherIconImageView.snp.makeConstraints { make in
+        weatherIcon.snp.makeConstraints { make in
             make.height.width.equalTo(40)
+        }
+        
+        collectionView.snp.makeConstraints { make in
+            make.centerX.centerY.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(20)
+            make.height.equalTo(100)
         }
     }
 }
@@ -270,3 +289,28 @@ extension WeatherView: UITextFieldDelegate {
     }
 }
 
+extension WeatherView: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = collectionView.frame.width / 3.2
+        let height = collectionView.frame.height
+        return CGSize(width: width, height: height)
+    }
+}
+
+extension WeatherView: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 3
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as? WeatherInfoCell else { return UICollectionViewCell() }
+        
+        cell.cellIndex = indexPath.row
+        
+        if let details = details {
+            cell.setupCell(detailsInfo: details)
+        }
+    
+        return cell
+    }
+}

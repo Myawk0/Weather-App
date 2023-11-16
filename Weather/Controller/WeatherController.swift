@@ -25,7 +25,7 @@ class WeatherController: UIViewController {
         
         setupDelegates()
         locationManager.requestWhenInUseAuthorization()
-        //locationManager.requestLocation()
+        locationManager.requestLocation()
     }
     
     required init?(coder: NSCoder) {
@@ -79,6 +79,7 @@ extension WeatherController: NetworkManagerDelegate {
                 description: weather.description,
                 icon: URL(string: "\(API.scheme):\(weather.iconName)")
             )
+            self.weatherView.details = weather.details
         }
     }
 }

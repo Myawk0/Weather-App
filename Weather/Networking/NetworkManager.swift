@@ -68,12 +68,19 @@ extension NetworkManager {
         makeTask(for: url) { (result: Result<WeatherData, NetworkError>) in
             switch result {
             case .success(let decodedData):
+                let detailsInfo = WeatherDetailInfo(
+                    indexUV: decodedData.current.uv,
+                    precipitation: decodedData.current.precip_mm,
+                    humidity: decodedData.current.humidity
+                )
+                
                 let weather = WeatherModel(
                     weatherCode: decodedData.current.condition.code,
                     cityName: decodedData.location.name,
                     temperature: decodedData.current.temp_c,
                     description: decodedData.current.condition.text,
-                    iconName: decodedData.current.condition.icon
+                    iconName: decodedData.current.condition.icon,
+                    details: detailsInfo
                 )
                 completion(.success(weather))
             case .failure(let error):
