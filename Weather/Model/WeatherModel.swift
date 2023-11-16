@@ -7,18 +7,18 @@
 
 import Foundation
 
-
 struct WeatherModel {
-    let weatherId: Int
+    let weatherCode: Int
     let cityName: String
     let temperature: Double
     let description: String
+    let iconName: String
     
     var temperatureString: String {
-        return String(format: "%.0f", temperature)
+        return String(format: "%.0f", ceil(temperature))
     }
     
     var weatherInfo: WeatherInfo {
-        return WeatherInfo(weatherId: weatherId)
+        return WeatherInfo(weatherCode: weatherCode)
     }
 }

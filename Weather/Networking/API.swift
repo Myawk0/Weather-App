@@ -9,9 +9,9 @@ import Foundation
 
 struct API {
     static let scheme = "https"
-    static let host = "api.openweathermap.org"
+    static let host = "api.weatherapi.com"
     
-    static let apiKey = "b5c71a2d65880435d4fbdd107733bb5d"
-    static let units = "metric"
-    static let language = "en"
+    static let apiKey = "bfed9d0f11864ca6bca150615231611"
+    //static let units = "metric"
+    //static let language = "en"
 }

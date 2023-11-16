@@ -24,7 +24,7 @@ class WeatherController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         
         setupDelegates()
-        //locationManager.requestWhenInUseAuthorization()
+        locationManager.requestWhenInUseAuthorization()
         //locationManager.requestLocation()
     }
     
@@ -76,7 +76,8 @@ extension WeatherController: NetworkManagerDelegate {
                 name: weather.cityName,
                 temp: weather.temperatureString,
                 images: weather.weatherInfo,
-                description: weather.description
+                description: weather.description,
+                icon: URL(string: "\(API.scheme):\(weather.iconName)")
             )
         }
     }
@@ -92,8 +93,11 @@ extension WeatherController: CLLocationManagerDelegate {
             locationManager.stopUpdatingLocation()
             let lat = location.coordinate.latitude
             let lon = location.coordinate.longitude
-            networkManager.fetchWeather(coordinates: (lat, lon))//latitude: lat, longitude: lon)
-            weatherView.showActivityIndicator = false
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.networkManager.fetchWeather(coordinates: (lat, lon))
+                self.weatherView.showActivityIndicator = false
+            }
         }
     }
     

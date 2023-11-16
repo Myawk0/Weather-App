@@ -3,6 +3,7 @@
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -16,17 +17,18 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Weather App" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FxH-yX-zV6">
-                                <rect key="frame" x="93.333333333333329" y="418.33333333333331" width="206.33333333333337" height="40.666666666666686"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="34"/>
+                                <rect key="frame" x="87.000000000000014" y="415.33333333333331" width="219.33333333333337" height="46.333333333333314"/>
+                                <fontDescription key="fontDescription" name="Kailasa-Bold" family="Kailasa" pointSize="35"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Logo" translatesAutoresizingMaskIntoConstraints="NO" id="GbU-0s-F7S">
-                                <rect key="frame" x="56.666666666666657" y="116" width="280" height="280"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="GbU-0s-F7S">
+                                <rect key="frame" x="56.666666666666657" y="119.33333333333334" width="280.66666666666674" height="278.66666666666663"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="280" id="GRQ-cP-mcR"/>
                                     <constraint firstAttribute="height" constant="280" id="Od0-YL-FLL"/>
                                 </constraints>
+                                <imageReference key="image" image="cloud.sun.fill" catalog="system" renderingMode="original"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -34,7 +36,7 @@
                         <constraints>
                             <constraint firstItem="FxH-yX-zV6" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="MNV-fA-8F8"/>
                             <constraint firstItem="GbU-0s-F7S" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="TAL-Wj-qTj"/>
-                            <constraint firstItem="GbU-0s-F7S" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="57" id="TIx-ci-jXB"/>
+                            <constraint firstItem="GbU-0s-F7S" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="60" id="TIx-ci-jXB"/>
                             <constraint firstItem="FxH-yX-zV6" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="kq2-er-CP2"/>
                         </constraints>
                     </view>
@@ -45,6 +47,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Logo" width="1024" height="1024"/>
+        <image name="cloud.sun.fill" catalog="system" width="128" height="96"/>
     </resources>
 </document>

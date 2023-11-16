@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
 protocol WeatherViewDelegate: AnyObject {
     func cityNameIsPassed(city: String)
@@ -172,12 +173,13 @@ class WeatherView: UIView {
         searchTextField.endEditing(true)
     }
     
-    func updateWeatherData(name: String, temp: String, images: WeatherInfo, description: String) {
+    func updateWeatherData(name: String, temp: String, images: WeatherInfo, description: String, icon: URL?) {
         cityLabel.text = name
         degreesLabel.text = "\(temp)°C"
-        weatherIconImageView.image = UIImage(systemName: images.icon)?.withRenderingMode(.alwaysOriginal)
+        //weatherIconImageView.image = UIImage(named: icon)//UIImage(systemName: images.icon)?.withRenderingMode(.alwaysOriginal)
+        weatherIconImageView.kf.setImage(with: icon)
         backgroundImageView.image = UIImage(named: images.background)
-        weatherDescriptionLabel.text = description.capitalizedSentence
+        weatherDescriptionLabel.text = description//.capitalizedSentence
     }
     
     private func addSubviews() {

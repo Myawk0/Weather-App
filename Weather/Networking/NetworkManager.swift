@@ -22,18 +22,14 @@ class NetworkManager {
         
         var parameters = [String: String]()
         
-        parameters["appid"] = API.apiKey
-        parameters["units"] = API.units
-        parameters["lang"] = API.language
+        parameters["key"] = API.apiKey
         
         switch endpoint {
         case .cityLocation:
             parameters["q"] = city
         case .coordinatesLocation:
             guard let coordinates = coordinates else { break }
-            
-            parameters["lat"] = "\(coordinates.latitude)"
-            parameters["lon"] = "\(coordinates.longitude)"
+            parameters["q"] = "\(coordinates.latitude),\(coordinates.longitude)"
         }
         
         return parameters
@@ -72,13 +68,13 @@ extension NetworkManager {
         makeTask(for: url) { (result: Result<WeatherData, NetworkError>) in
             switch result {
             case .success(let decodedData):
-                print(decodedData)
-                let id = decodedData.weather[0].id
-                let name = decodedData.name
-                let temp = decodedData.main.temp
-                let description = decodedData.weather[0].description
-                let weather = WeatherModel(weatherId: id, cityName: name, temperature: temp, description: description)
-                
+                let weather = WeatherModel(
+                    weatherCode: decodedData.current.condition.code,
+                    cityName: decodedData.location.name,
+                    temperature: decodedData.current.temp_c,
+                    description: decodedData.current.condition.text,
+                    iconName: decodedData.current.condition.icon
+                )
                 completion(.success(weather))
             case .failure(let error):
                 completion(.failure(error))

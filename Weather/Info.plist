@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string></string>
+	<string>He</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string></string>
+	<string>Hello</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to get the current weather for where you are</string>
 	<key>UIApplicationSceneManifest</key>

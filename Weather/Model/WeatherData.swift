@@ -8,16 +8,28 @@
 import Foundation
 
 struct WeatherData: Codable {
+    let location: Location
+    let current: Current
+}
+
+struct Location: Codable {
     let name: String
-    let main: Main
-    let weather: [Weather]
 }
 
-struct Main: Codable {
-    let temp: Double
+struct Current: Codable {
+    let temp_c: Double
+    let is_day: Int //"is_day": 0,
+    let condition: Condition
+    let wind_kph: Double
+    let pressure_mb: Double
+    let precip_mm: Double
+    let humidity: Int
+    let feelslike_c: Double
+    let uv: Double
 }
 
-struct Weather: Codable {
-    let description: String
-    let id: Int
+struct Condition: Codable {
+    let text: String
+    let code: Int
+    let icon: String
 }
