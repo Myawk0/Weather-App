@@ -119,7 +119,7 @@ class WeatherView: UIView {
     
     private lazy var weatherIconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(named: "partlycloudy")
+        imageView.image = UIImage(systemName: "cloud.sun.fill")?.withRenderingMode(.alwaysOriginal)
         imageView.contentMode = .scaleAspectFit
         //imageView.tintColor = .label
         return imageView
@@ -172,17 +172,12 @@ class WeatherView: UIView {
         searchTextField.endEditing(true)
     }
     
-    func updateWeatherImages(from images: (icon: String, back: String)) {
-        weatherIconImageView.image = UIImage(systemName: images.icon)
-        backgroundImageView.image = UIImage(named: images.back)
-    }
-    
-    func updateTemperature(with temp: String) {
-        degreesLabel.text = temp
-    }
-    
-    func updateCityName(with name: String) {
+    func updateWeatherData(name: String, temp: String, images: WeatherInfo, description: String) {
         cityLabel.text = name
+        degreesLabel.text = "\(temp)°C"
+        weatherIconImageView.image = UIImage(systemName: images.icon)?.withRenderingMode(.alwaysOriginal)
+        backgroundImageView.image = UIImage(named: images.background)
+        weatherDescriptionLabel.text = description.capitalizedSentence
     }
     
     private func addSubviews() {

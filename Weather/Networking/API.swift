@@ -13,5 +13,5 @@ struct API {
     
     static let apiKey = "b5c71a2d65880435d4fbdd107733bb5d"
     static let units = "metric"
-    static let language = "ru"
+    static let language = "en"
 }

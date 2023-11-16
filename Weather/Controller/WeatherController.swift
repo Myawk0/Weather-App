@@ -14,7 +14,7 @@ class WeatherController: UIViewController {
     // MARK: - Views
         
     private let weatherView: WeatherView
-    private var weatherManager = WeatherManager()
+    private var networkManager = NetworkManager()
     private let locationManager = CLLocationManager()
     
     // MARK: - Init
@@ -45,7 +45,7 @@ class WeatherController: UIViewController {
     
     func setupDelegates() {
         weatherView.delegate = self
-        weatherManager.delegate = self
+        networkManager.delegate = self
         locationManager.delegate = self
     }
 }
@@ -60,7 +60,7 @@ extension WeatherController: WeatherViewDelegate {
     func cityNameIsPassed(city: String) {
         weatherView.showActivityIndicator = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.weatherManager.fetchWeather(cityName: city)
+            self.networkManager.fetchWeather(cityName: city)
             self.weatherView.showActivityIndicator = false
         }
     }
@@ -68,18 +68,17 @@ extension WeatherController: WeatherViewDelegate {
 
 // MARK: - WeatherManagerDelegate
 
-extension WeatherController: WeatherManagerDelegate {
+extension WeatherController: NetworkManagerDelegate {
     
-    func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel) {
+    func didUpdateWeather(_ networkManager: NetworkManager, weather: WeatherModel) {
         DispatchQueue.main.async {
-            self.weatherView.updateWeatherImages(from: weather.weatherName)
-            self.weatherView.updateTemperature(with: weather.temperatureString)
-            self.weatherView.updateCityName(with: weather.cityName)
+            self.weatherView.updateWeatherData(
+                name: weather.cityName,
+                temp: weather.temperatureString,
+                images: weather.weatherInfo,
+                description: weather.description
+            )
         }
-    }
-    
-    func didFailWithError(error: Error) {
-        print(error)
     }
 }
 
@@ -93,7 +92,7 @@ extension WeatherController: CLLocationManagerDelegate {
             locationManager.stopUpdatingLocation()
             let lat = location.coordinate.latitude
             let lon = location.coordinate.longitude
-            weatherManager.fetchWeather(latitude: lat, longitude: lon)
+            networkManager.fetchWeather(coordinates: (lat, lon))//latitude: lat, longitude: lon)
             weatherView.showActivityIndicator = false
         }
     }

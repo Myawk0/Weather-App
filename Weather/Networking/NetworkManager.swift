@@ -8,12 +8,17 @@
 import Alamofire
 import UIKit
 
+protocol NetworkManagerDelegate: AnyObject {
+    func didUpdateWeather(_ networkManager: NetworkManager, weather: WeatherModel)
+}
+
 class NetworkManager {
     
     static let shared = NetworkManager()
+    weak var delegate: NetworkManagerDelegate?
     
     // Make parameters
-    private func makeParameters(for endpoint: Endpoint, city: String?, coordinates: (latitude: String, longitude: String)?) -> [String: String] {
+    private func makeParameters(for endpoint: Endpoint, city: String?, coordinates: (latitude: Double, longitude: Double)?) -> [String: String] {
         
         var parameters = [String: String]()
         
@@ -27,15 +32,15 @@ class NetworkManager {
         case .coordinatesLocation:
             guard let coordinates = coordinates else { break }
             
-            parameters["lat"] = coordinates.latitude
-            parameters["lon"] = coordinates.longitude
+            parameters["lat"] = "\(coordinates.latitude)"
+            parameters["lon"] = "\(coordinates.longitude)"
         }
         
         return parameters
     }
 
     // Create URL for API method
-    func createURL(for endPoint: Endpoint, city: String? = nil, coordinates: (latitude: String, longitude: String)? = nil) -> URL? {
+    func createURL(for endPoint: Endpoint, city: String? = nil, coordinates: (latitude: Double, longitude: Double)? = nil) -> URL? {
         var components = URLComponents()
         components.scheme = API.scheme
         components.host = API.host
@@ -67,10 +72,12 @@ extension NetworkManager {
         makeTask(for: url) { (result: Result<WeatherData, NetworkError>) in
             switch result {
             case .success(let decodedData):
+                print(decodedData)
                 let id = decodedData.weather[0].id
                 let name = decodedData.name
                 let temp = decodedData.main.temp
-                let weather = WeatherModel(weatherId: id, cityName: name, temperature: temp)
+                let description = decodedData.weather[0].description
+                let weather = WeatherModel(weatherId: id, cityName: name, temperature: temp, description: description)
                 
                 completion(.success(weather))
             case .failure(let error):
@@ -81,16 +88,30 @@ extension NetworkManager {
     
     // MARK: - GET Weather by City name
     
-    func fetchWeather(cityName: String, completion: @escaping (Result<WeatherModel, NetworkError>) -> Void) {
+    func fetchWeather(cityName: String) {
         guard let url = createURL(for: .cityLocation, city: cityName) else { return }
-        performWeatherRequest(with: url, completion: completion)
+        performWeatherRequest(with: url) { result in
+            switch result {
+            case .success(let weatherModel):
+                self.delegate?.didUpdateWeather(self, weather: weatherModel)
+            case .failure(let error):
+                print("Error getting weather info by City Name: \(error)")
+            }
+        }
     }
     
     // MARK: - GET Weather by current Coordinates
     
-    func fetchNews(coordinates: (latitude: String, longitude: String), completion: @escaping (Result<WeatherModel, NetworkError>) -> Void) {
+    func fetchWeather(coordinates: (latitude: Double, longitude: Double)) {
         guard let url = createURL(for: .coordinatesLocation, coordinates: coordinates) else { return }
-        performWeatherRequest(with: url, completion: completion)
+        performWeatherRequest(with: url) { result in
+            switch result {
+            case .success(let weatherModel):
+                self.delegate?.didUpdateWeather(self, weather: weatherModel)
+            case .failure(let error):
+                print("Error getting weather info by Current Coordinates: \(error)")
+            }
+        }
     }
 }
 
