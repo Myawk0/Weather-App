@@ -10,6 +10,7 @@ import Foundation
 struct WeatherData: Codable {
     let location: Location
     let current: Current
+    let forecast: Forecast
 }
 
 struct Location: Codable {
@@ -32,4 +33,18 @@ struct Condition: Codable {
     let text: String
     let code: Int
     let icon: String
+}
+
+struct Forecast: Codable {
+    let forecastday: [ForecastDay]
+}
+
+struct ForecastDay: Codable {
+    let date: String
+    let day: Day
+}
+
+struct Day: Codable {
+    let avgtemp_c: Double
+    let condition: Condition
 }

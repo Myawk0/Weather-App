@@ -23,6 +23,7 @@ class NetworkManager {
         var parameters = [String: String]()
         
         parameters["key"] = API.apiKey
+        parameters["days"] = "\(API.countNextDays)"
         
         switch endpoint {
         case .cityLocation:
@@ -68,9 +69,18 @@ extension NetworkManager {
         makeTask(for: url) { (result: Result<WeatherData, NetworkError>) in
             switch result {
             case .success(let decodedData):
+                
+                var infoNextDays = [WeatherInfoNextDays]()
+                for day in 1...API.countNextDays - 1 {
+                    let avgTemp = decodedData.forecast.forecastday[day].day.avgtemp_c
+                    let iconName = decodedData.forecast.forecastday[day].day.condition.icon
+                    let date = decodedData.forecast.forecastday[day].date
+                    infoNextDays.append(WeatherInfoNextDays(avgTemperature: avgTemp, iconName: iconName, date: date))
+                }
+                
                 let detailsInfo = WeatherDetailInfo(
                     indexUV: decodedData.current.uv,
-                    precipitation: decodedData.current.precip_mm,
+                    wind: decodedData.current.wind_kph,
                     humidity: decodedData.current.humidity
                 )
                 
@@ -80,7 +90,8 @@ extension NetworkManager {
                     temperature: decodedData.current.temp_c,
                     description: decodedData.current.condition.text,
                     iconName: decodedData.current.condition.icon,
-                    details: detailsInfo
+                    details: detailsInfo,
+                    infoNextDays: infoNextDays
                 )
                 completion(.success(weather))
             case .failure(let error):

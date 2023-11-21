@@ -7,7 +7,15 @@
 
 import UIKit
 
-class WeatherInfoCell: UICollectionViewCell {
+class DetailInfoCell: UICollectionViewCell {
+    
+    weak var viewModel: DetailInfoCellViewModelType? {
+        willSet(viewModel) {
+            guard let viewModel = viewModel  else { return }
+            
+            setupCell(with: viewModel.getWeatherInfoValue())
+        }
+    }
     
     private lazy var weatherInfoStackView: UIStackView = {
         let stackView = UIStackView()
@@ -19,14 +27,12 @@ class WeatherInfoCell: UICollectionViewCell {
     
     private lazy var weatherInfoIcon: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "sun.max.fill")?.withRenderingMode(.alwaysOriginal)
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
     
     private lazy var weatherInfoTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "UV index"
         label.textColor = .gray
         label.font = Fonts.rubikRegular(size: 12)
         return label
@@ -42,29 +48,28 @@ class WeatherInfoCell: UICollectionViewCell {
     
     private lazy var weatherInfoValueLabel: UILabel = {
         let label = UILabel()
-        //label.text = "7 High"
         label.textColor = .label
-        label.font = Fonts.rubikMedium(size: 20)
+        label.font = Fonts.rubikMedium(size: 19)
         return label
     }()
     
     private lazy var weatherInfoIndicatorLabel: UILabel = {
         let label = UILabel()
         label.textColor = .label
-        label.font = Fonts.rubikRegular(size: 13)
+        label.font = Fonts.rubikRegular(size: 14)
         return label
     }()
     
     var cellIndex: Int = 0 {
         didSet {
             guard let info = WeatherInfoData(rawValue: cellIndex) else { return }
-            setupCellAppearance(with: info)
+            updateCellAppearance(with: info)
         }
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-
+        
         addSubviews()
         applyConstraints()
     }
@@ -73,43 +78,14 @@ class WeatherInfoCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupCellAppearance(with info: WeatherInfoData) {
+    func updateCellAppearance(with info: WeatherInfoData) {
         weatherInfoIcon.image = info.icon
         weatherInfoTitleLabel.text = info.title
     }
     
-    func setupCell(detailsInfo: WeatherDetailInfo) {
-        weatherInfoIndicatorLabel.isHidden = true
-        
-        switch cellIndex {
-        case 0:
-            weatherInfoIndicatorLabel.isHidden = false
-            let indexUV = Int(detailsInfo.indexUV)
-            weatherInfoValueLabel.text = "\(indexUV)"
-            weatherInfoIndicatorLabel.text = defineIndexUV(index: indexUV)
-        case 1:
-            weatherInfoValueLabel.text = "\(detailsInfo.humidity)%"
-        case 2:
-            weatherInfoValueLabel.text = "\(detailsInfo.precipitation)mm"
-        default: break
-        }
-    }
-    
-    private func defineIndexUV(index: Int) -> String {
-        switch index {
-        case 0...2:
-            return "Low"
-        case 3...5:
-            return "Moderate"
-        case 6...7:
-            return "High"
-        case 8...10:
-            return "Very High"
-        case 11...Int.max:
-            return "Extreme"
-        default:
-            return ""
-        }
+    func setupCell(with data: (value: String, unit: String)) {
+        weatherInfoValueLabel.text = data.value
+        weatherInfoIndicatorLabel.text = data.unit
     }
     
     private func addSubviews() {
@@ -124,7 +100,7 @@ class WeatherInfoCell: UICollectionViewCell {
     
     private func applyConstraints() {
         weatherInfoStackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview().inset(15)
+            make.edges.equalToSuperview().inset(7)
         }
         
         weatherInfoIcon.snp.makeConstraints { make in

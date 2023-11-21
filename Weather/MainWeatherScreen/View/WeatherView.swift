@@ -8,14 +8,16 @@
 import UIKit
 import SnapKit
 import Kingfisher
+import QuartzCore
 
 protocol WeatherViewDelegate: AnyObject {
     func cityNameIsPassed(city: String)
     func getCurrentLocation()
 }
 
-class WeatherView: UIView {
+class WeatherView: UIViewController {
     
+    private var viewModel: WeatherViewModelType!
     weak var delegate: WeatherViewDelegate?
     
     // MARK: - Activity Indicator
@@ -68,7 +70,7 @@ class WeatherView: UIView {
         let textField = UITextField()
         textField.placeholder = "Search"
         textField.borderStyle = .roundedRect
-        textField.backgroundColor = .white
+        textField.backgroundColor = .white.withAlphaComponent(0.7)
         textField.autocapitalizationType = .words
         textField.returnKeyType = .go
         textField.delegate = self
@@ -87,7 +89,7 @@ class WeatherView: UIView {
     
     private lazy var cityLabel: UILabel = {
         let label = UILabel()
-        label.text = "Tokyo"
+        label.text = "City"
         label.font = Fonts.rubikRegular(size: 22)
         return label
     }()
@@ -139,36 +141,73 @@ class WeatherView: UIView {
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .white.withAlphaComponent(0.7)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.layer.cornerRadius = 20
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(WeatherInfoCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.register(DetailInfoCell.self, forCellWithReuseIdentifier: K.DetailInfo.cellIdentifier)
         return collectionView
     }()
     
-    let cellIdentifier = "MyCollectionViewCell"
+    // MARK: - Table View with info for next 7 days
+    
+    private lazy var nextDaysHeaderView: UIView = {
+        let view = UIView()
+        return view
+    }()
+    
+    private lazy var nextDaysHeaderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Next Days"
+        label.textAlignment = .left
+        label.font = Fonts.rubikRegular(size: 14)
+        label.textColor = .gray
+        return label
+    }()
+    
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero)
+        tableView.backgroundColor = .white.withAlphaComponent(0.5)
+        tableView.layer.cornerRadius = 20
+        tableView.sectionHeaderTopPadding = 0
+        tableView.register(NextDaysCell.self, forCellReuseIdentifier: K.NextDaysInfo.cellIdentifier)
+        return tableView
+    }()
     
     // MARK: - Init
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        delegate?.getCurrentLocation()
-        
-        addSubviews()
-        applyConstraints()
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        viewModel = WeatherViewModel(weatherController: self)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    var showActivityIndicator: Bool = false {
-        didSet {
-            showActivityIndicator ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
-        }
+    // MARK: - Lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        delegate?.getCurrentLocation()
+        
+        setupDelegates()
+        addSubviews()
+        applyConstraints()
     }
+    
+    // MARK: - Delegates
+    
+    private func setupDelegates() {
+        viewModel.delegate = self
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
+    }
+    
+    // MARK: - Selectors of Search and Location buttons
     
     @objc func locationButtonPressed(_ sender: UIButton) {
         delegate?.getCurrentLocation()
@@ -178,25 +217,23 @@ class WeatherView: UIView {
         searchTextField.endEditing(true)
     }
     
-    var details: WeatherDetailInfo? {
-        didSet {
-            collectionView.reloadData()
-        }
-    }
+    // MARK: - Method to setup updated data
     
     func updateWeatherData(name: String, temp: String, images: WeatherInfo, description: String, icon: URL?) {
         cityLabel.text = name
         degreesLabel.text = "\(temp)°C"
         weatherIcon.kf.setImage(with: icon)
         backgroundImageView.image = UIImage(named: images.background)
-        weatherDescriptionLabel.text = description//.capitalizedSentence
+        weatherDescriptionLabel.text = description
     }
     
+    // MARK: - Subviews
+    
     private func addSubviews() {
-        addSubview(backgroundImageView)
-        addSubview(activityIndicator)
+        view.addSubview(backgroundImageView)
+        view.addSubview(activityIndicator)
         
-        addSubview(verticalStackView)
+        view.addSubview(verticalStackView)
         verticalStackView.addArrangedSubview(searchStackView)
         
         searchStackView.addArrangedSubview(locationButton)
@@ -210,9 +247,13 @@ class WeatherView: UIView {
         weatherDescriptionStackView.addArrangedSubview(weatherIcon)
         weatherDescriptionStackView.addArrangedSubview(weatherDescriptionLabel)
         
-        addSubview(collectionView)
+        view.addSubview(collectionView)
         
+        nextDaysHeaderView.addSubview(nextDaysHeaderLabel)
+        view.addSubview(tableView)
     }
+    
+    // MARK: - Constraints
     
     private func applyConstraints() {
         
@@ -254,6 +295,81 @@ class WeatherView: UIView {
             make.leading.trailing.equalToSuperview().inset(20)
             make.height.equalTo(100)
         }
+        
+        nextDaysHeaderLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().inset(20)
+            make.centerY.equalToSuperview()
+        }
+        
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(collectionView.snp.bottom).offset(20)
+            make.leading.trailing.equalToSuperview().inset(20)
+            make.bottom.equalToSuperview().inset(40)
+        }
+    }
+}
+
+// MARK: - UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
+
+extension WeatherView: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = view.frame.width / 3.6
+        let height = collectionView.frame.height
+        return CGSize(width: width, height: height)
+    }
+}
+
+// MARK: - UICollectionViewDataSource
+
+extension WeatherView: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 3
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: K.DetailInfo.cellIdentifier, for: indexPath) as? DetailInfoCell,
+              let viewModel = viewModel else { return UICollectionViewCell() }
+        
+        cell.viewModel = viewModel.detailInfoCellViewModel(for: indexPath)
+        cell.cellIndex = indexPath.row
+        
+        return cell
+    }
+}
+
+// MARK: - UITableViewDelegate
+
+extension WeatherView: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return K.NextDaysInfo.heightForRow
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return nextDaysHeaderView
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return K.NextDaysInfo.heightForHeader
+    }
+}
+
+// MARK: - UITableViewDataSource
+
+extension WeatherView: UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return API.countNextDays - 1
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: K.NextDaysInfo.cellIdentifier, for: indexPath) as? NextDaysCell,
+              let viewModel = viewModel else { return UITableViewCell() }
+        
+        cell.viewModel = viewModel.nextDaysCellViewModel(for: indexPath)
+        
+        return cell
     }
 }
 
@@ -274,43 +390,48 @@ extension WeatherView: UITextFieldDelegate {
     }
     
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-        if textField.text != "" {
-            return true
-        } else {
+        if textField.text == "" {
             textField.placeholder = "Type something"
             return false
         }
+        return true
     }
     
-    // MARK: - Close keyboard when tap on any place except textfield
-    
+    // Close keyboard when tap on any place except textfield
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        endEditing(true)
+        view.endEditing(true)
     }
 }
 
-extension WeatherView: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = collectionView.frame.width / 3.2
-        let height = collectionView.frame.height
-        return CGSize(width: width, height: height)
-    }
-}
+// MARK: - UIScrollViewDelegate
 
-extension WeatherView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 3
-    }
+extension WeatherView: UIScrollViewDelegate {
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as? WeatherInfoCell else { return UICollectionViewCell() }
-        
-        cell.cellIndex = indexPath.row
-        
-        if let details = details {
-            cell.setupCell(detailsInfo: details)
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        for case let cell as NextDaysCell in tableView.visibleCells {
+            let hiddenFrameHeight = scrollView.contentOffset.y + 40 - cell.frame.origin.y
+            if hiddenFrameHeight >= 0 || hiddenFrameHeight <= cell.frame.size.height {
+                cell.maskCell(fromTop: hiddenFrameHeight)
+            }
         }
+    }
+}
+
+extension WeatherView: WeatherViewModelDelegate {
     
-        return cell
+    func updateUI(with weather: WeatherModel) {
+        updateWeatherData(
+            name: weather.cityName,
+            temp: weather.temperatureString,
+            images: weather.weatherInfo,
+            description: weather.description,
+            icon: weather.iconName.getIconURL
+        )
+        collectionView.reloadData()
+        tableView.reloadData()
+    }
+    
+    func didChangeLoadingState(_ isLoading: Bool) {
+        isLoading ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
     }
 }

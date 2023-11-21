@@ -13,7 +13,9 @@ struct WeatherModel {
     let temperature: Double
     let description: String
     let iconName: String
+    
     let details: WeatherDetailInfo
+    let infoNextDays: [WeatherInfoNextDays]
     
     var temperatureString: String {
         return String(format: "%.0f", ceil(temperature))
@@ -26,6 +28,12 @@ struct WeatherModel {
 
 struct WeatherDetailInfo {
     let indexUV: Double
-    let precipitation: Double
+    let wind: Double
     let humidity: Int
+}
+
+struct WeatherInfoNextDays {
+    let avgTemperature: Double
+    let iconName: String
+    let date: String
 }

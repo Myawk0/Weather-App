@@ -12,6 +12,7 @@ struct API {
     static let host = "api.weatherapi.com"
     
     static let apiKey = "bfed9d0f11864ca6bca150615231611"
+    static let countNextDays = 8
     //static let units = "metric"
     //static let language = "en"
 }

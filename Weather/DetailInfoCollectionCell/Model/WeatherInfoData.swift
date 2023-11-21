@@ -10,7 +10,7 @@ import UIKit
 enum WeatherInfoData: Int {
     case indexUV = 0
     case humidity = 1
-    case precipitation = 2
+    case wind = 2
     
     var icon: UIImage? {
         switch self {
@@ -18,8 +18,8 @@ enum WeatherInfoData: Int {
             return UIImage(systemName: "sun.max.fill")?.withRenderingMode(.alwaysOriginal)
         case .humidity:
             return UIImage(systemName: "humidity")
-        case .precipitation:
-            return UIImage(named: "precipitation")?.withTintColor(.systemBlue, renderingMode: .alwaysOriginal)
+        case .wind:
+            return UIImage(systemName: "wind")?.withTintColor(.systemCyan, renderingMode: .alwaysOriginal)
         }
     }
     
@@ -29,8 +29,8 @@ enum WeatherInfoData: Int {
             return "UV Index"
         case .humidity:
             return "Humidity"
-        case .precipitation:
-            return "Precipitation"
+        case .wind:
+            return "Wind"
         }
     }
 }

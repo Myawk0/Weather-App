@@ -14,7 +14,7 @@ enum Endpoint {
     var path: String {
         switch self {
         case .cityLocation, .coordinatesLocation:
-            return "/v1/current.json"
+            return "/v1/forecast.json"
         }
     }
 }

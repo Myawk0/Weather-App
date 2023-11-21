@@ -9,18 +9,21 @@ import Foundation
 
 extension String {
     
-//    var capitalizedSentence: String {
-//        let firstLetter = self.prefix(1).capitalized
-//        let remainingLetters = self.dropFirst().lowercased()
-//
-//        return firstLetter + remainingLetters
-//    }
+    func dateFormatter() -> String? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        
+        if let date = dateFormatter.date(from: self) {
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateFormat = "EEEE, d MMM"
+            outputFormatter.locale = Locale(identifier: "en_US_POSIX")
+            return outputFormatter.string(from: date)
+        }
+        
+        return nil
+    }
     
-//    var getIconNameFromURL: String {
-//        return (self
-//            .components(separatedBy: "/")
-//            .last?
-//            .components(separatedBy: CharacterSet.decimalDigits.inverted)
-//            .first)!
-//    }
+    var getIconURL: URL? {
+        return URL(string: "\(API.scheme):\(self)")
+    }
 }
