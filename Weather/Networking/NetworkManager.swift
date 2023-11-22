@@ -61,38 +61,52 @@ class NetworkManager {
             }
         }
     }
+    
+    private func getWeatherInfoNextDays(data: WeatherData) -> [WeatherInfoNextDays] {
+        var infoNextDays = [WeatherInfoNextDays]()
+        for day in 1...API.countNextDays - 1 {
+            let avgTemp = data.forecast.forecastday[day].day.avgtemp_c
+            let iconName = data.forecast.forecastday[day].day.condition.icon
+            let date = data.forecast.forecastday[day].date
+            infoNextDays.append(WeatherInfoNextDays(avgTemperature: avgTemp, iconName: iconName, date: date))
+        }
+        return infoNextDays
+    }
+    
+    private func getWeatherDetailInfo(data: WeatherData) -> WeatherDetailInfo {
+        return WeatherDetailInfo(
+            indexUV: data.current.uv,
+            wind: data.current.wind_kph,
+            humidity: data.current.humidity
+        )
+    }
+    
+    private func getWeatherModel(data: WeatherData, details: WeatherDetailInfo, nextDays: [WeatherInfoNextDays]) -> WeatherModel {
+        return WeatherModel(
+            weatherCode: data.current.condition.code,
+            cityName: data.location.name,
+            temperature: data.current.temp_c,
+            description: data.current.condition.text,
+            iconName: data.current.condition.icon,
+            details: details,
+            infoNextDays: nextDays
+        )
+    }
 }
 
 extension NetworkManager {
+    
+    // MARK: - Method to get Decoded Data
     
     func performWeatherRequest(with url: URL, completion: @escaping (Result<WeatherModel, NetworkError>) -> Void) {
         makeTask(for: url) { (result: Result<WeatherData, NetworkError>) in
             switch result {
             case .success(let decodedData):
                 
-                var infoNextDays = [WeatherInfoNextDays]()
-                for day in 1...API.countNextDays - 1 {
-                    let avgTemp = decodedData.forecast.forecastday[day].day.avgtemp_c
-                    let iconName = decodedData.forecast.forecastday[day].day.condition.icon
-                    let date = decodedData.forecast.forecastday[day].date
-                    infoNextDays.append(WeatherInfoNextDays(avgTemperature: avgTemp, iconName: iconName, date: date))
-                }
+                let infoNextDays = self.getWeatherInfoNextDays(data: decodedData)
+                let detailsInfo = self.getWeatherDetailInfo(data: decodedData)
+                let weather = self.getWeatherModel(data: decodedData, details: detailsInfo, nextDays: infoNextDays)
                 
-                let detailsInfo = WeatherDetailInfo(
-                    indexUV: decodedData.current.uv,
-                    wind: decodedData.current.wind_kph,
-                    humidity: decodedData.current.humidity
-                )
-                
-                let weather = WeatherModel(
-                    weatherCode: decodedData.current.condition.code,
-                    cityName: decodedData.location.name,
-                    temperature: decodedData.current.temp_c,
-                    description: decodedData.current.condition.text,
-                    iconName: decodedData.current.condition.icon,
-                    details: detailsInfo,
-                    infoNextDays: infoNextDays
-                )
                 completion(.success(weather))
             case .failure(let error):
                 completion(.failure(error))

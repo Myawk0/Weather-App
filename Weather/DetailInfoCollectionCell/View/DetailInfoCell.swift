@@ -9,13 +9,17 @@ import UIKit
 
 class DetailInfoCell: UICollectionViewCell {
     
-    weak var viewModel: DetailInfoCellViewModelType? {
+    // MARK: - ViewModel
+    
+    weak var viewModel: DetailInfoViewModelType? {
         willSet(viewModel) {
             guard let viewModel = viewModel  else { return }
             
             setupCell(with: viewModel.getWeatherInfoValue())
         }
     }
+    
+    // MARK: - Views
     
     private lazy var weatherInfoStackView: UIStackView = {
         let stackView = UIStackView()
@@ -60,12 +64,16 @@ class DetailInfoCell: UICollectionViewCell {
         return label
     }()
     
+    // MARK: - Cell Index
+    
     var cellIndex: Int = 0 {
         didSet {
             guard let info = WeatherInfoData(rawValue: cellIndex) else { return }
             updateCellAppearance(with: info)
         }
     }
+    
+    // MARK: - Init
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -78,15 +86,21 @@ class DetailInfoCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Setup cell appearance
+    
     func updateCellAppearance(with info: WeatherInfoData) {
         weatherInfoIcon.image = info.icon
         weatherInfoTitleLabel.text = info.title
     }
     
+    // MARK: - Setup cell updated data
+    
     func setupCell(with data: (value: String, unit: String)) {
         weatherInfoValueLabel.text = data.value
         weatherInfoIndicatorLabel.text = data.unit
     }
+    
+    // MARK: - Subviews
     
     private func addSubviews() {
         contentView.addSubview(weatherInfoStackView)
@@ -97,6 +111,8 @@ class DetailInfoCell: UICollectionViewCell {
         weatherInfoValueStackView.addArrangedSubview(weatherInfoValueLabel)
         weatherInfoValueStackView.addArrangedSubview(weatherInfoIndicatorLabel)
     }
+    
+    // MARK: - Constraints
     
     private func applyConstraints() {
         weatherInfoStackView.snp.makeConstraints { make in

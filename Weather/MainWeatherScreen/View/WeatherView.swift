@@ -18,6 +18,8 @@ protocol WeatherViewDelegate: AnyObject {
 class WeatherView: UIViewController {
     
     private var viewModel: WeatherViewModelType!
+    private var interaction = DelegatesInteraction()
+    
     weak var delegate: WeatherViewDelegate?
     
     // MARK: - Activity Indicator
@@ -25,7 +27,8 @@ class WeatherView: UIViewController {
     private lazy var activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large)
         indicator.hidesWhenStopped = true
-        indicator.color = .white
+        indicator.color = .black
+        indicator.center = view.center
         return indicator
     }()
     
@@ -36,16 +39,6 @@ class WeatherView: UIViewController {
         imageView.image = UIImage(named: "cloud")
         imageView.contentMode = .scaleAspectFill
         return imageView
-    }()
-    
-    // MARK: - StackView for all elements
-    
-    private lazy var verticalStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        //stackView.spacing = 5
-        stackView.alignment = .center
-        return stackView
     }()
     
     // MARK: - Search panel
@@ -83,6 +76,16 @@ class WeatherView: UIViewController {
         button.tintColor = .label
         button.addTarget(self, action: #selector(searchButtonPressed), for: .touchUpInside)
         return button
+    }()
+    
+    // MARK: - StackView for main Weather Info
+    
+    private lazy var verticalStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = -5
+        return stackView
     }()
     
     // MARK: - City Label
@@ -144,31 +147,16 @@ class WeatherView: UIViewController {
         collectionView.backgroundColor = .white.withAlphaComponent(0.7)
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.layer.cornerRadius = 20
-        collectionView.delegate = self
-        collectionView.dataSource = self
         collectionView.register(DetailInfoCell.self, forCellWithReuseIdentifier: K.DetailInfo.cellIdentifier)
         return collectionView
     }()
     
     // MARK: - Table View with info for next 7 days
     
-    private lazy var nextDaysHeaderView: UIView = {
-        let view = UIView()
-        return view
-    }()
-    
-    private lazy var nextDaysHeaderLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Next Days"
-        label.textAlignment = .left
-        label.font = Fonts.rubikRegular(size: 14)
-        label.textColor = .gray
-        return label
-    }()
-    
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero)
         tableView.backgroundColor = .white.withAlphaComponent(0.5)
+        tableView.showsVerticalScrollIndicator = false
         tableView.layer.cornerRadius = 20
         tableView.sectionHeaderTopPadding = 0
         tableView.register(NextDaysCell.self, forCellReuseIdentifier: K.NextDaysInfo.cellIdentifier)
@@ -201,10 +189,10 @@ class WeatherView: UIViewController {
     
     private func setupDelegates() {
         viewModel.delegate = self
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        tableView.delegate = self
-        tableView.dataSource = self
+        collectionView.delegate = interaction
+        collectionView.dataSource = viewModel
+        tableView.delegate = interaction
+        tableView.dataSource = viewModel
     }
     
     // MARK: - Selectors of Search and Location buttons
@@ -233,13 +221,12 @@ class WeatherView: UIViewController {
         view.addSubview(backgroundImageView)
         view.addSubview(activityIndicator)
         
-        view.addSubview(verticalStackView)
-        verticalStackView.addArrangedSubview(searchStackView)
-        
+        view.addSubview(searchStackView)
         searchStackView.addArrangedSubview(locationButton)
         searchStackView.addArrangedSubview(searchTextField)
         searchStackView.addArrangedSubview(searchButton)
         
+        view.addSubview(verticalStackView)
         verticalStackView.addArrangedSubview(cityLabel)
         verticalStackView.addArrangedSubview(degreesLabel)
         
@@ -248,8 +235,6 @@ class WeatherView: UIViewController {
         weatherDescriptionStackView.addArrangedSubview(weatherDescriptionLabel)
         
         view.addSubview(collectionView)
-        
-        nextDaysHeaderView.addSubview(nextDaysHeaderLabel)
         view.addSubview(tableView)
     }
     
@@ -257,119 +242,44 @@ class WeatherView: UIViewController {
     
     private func applyConstraints() {
         
-        activityIndicator.snp.makeConstraints { make in
-            make.centerX.equalToSuperview()
-            make.centerY.equalToSuperview().offset(50)
-        }
-        
         backgroundImageView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
         
-        verticalStackView.snp.makeConstraints { make in
+        searchStackView.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(70)
             make.leading.trailing.equalToSuperview().inset(20)
+            make.height.equalTo(40)
         }
         
         locationButton.snp.makeConstraints { make in
             make.height.width.equalTo(40)
         }
         
-        searchTextField.snp.makeConstraints { make in
-            make.width.equalTo(UIScreen.main.bounds.width / 1.53)
-            make.height.equalTo(40)
-        }
-        
         searchButton.snp.makeConstraints { make in
             make.height.width.equalTo(40)
         }
         
-        verticalStackView.setCustomSpacing(30, after: searchStackView)
+        verticalStackView.snp.makeConstraints { make in
+            make.top.equalTo(searchStackView.snp.bottom).offset(30)
+            make.centerX.equalToSuperview()
+        }
         
         weatherIcon.snp.makeConstraints { make in
             make.height.width.equalTo(40)
         }
         
         collectionView.snp.makeConstraints { make in
-            make.centerX.centerY.equalToSuperview()
+            make.top.equalTo(verticalStackView.snp.bottom).offset(30)
             make.leading.trailing.equalToSuperview().inset(20)
             make.height.equalTo(100)
         }
         
-        nextDaysHeaderLabel.snp.makeConstraints { make in
-            make.leading.equalToSuperview().inset(20)
-            make.centerY.equalToSuperview()
-        }
-        
         tableView.snp.makeConstraints { make in
-            make.top.equalTo(collectionView.snp.bottom).offset(20)
+            make.top.equalTo(collectionView.snp.bottom).offset(40)
             make.leading.trailing.equalToSuperview().inset(20)
             make.bottom.equalToSuperview().inset(40)
         }
-    }
-}
-
-// MARK: - UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
-
-extension WeatherView: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = view.frame.width / 3.6
-        let height = collectionView.frame.height
-        return CGSize(width: width, height: height)
-    }
-}
-
-// MARK: - UICollectionViewDataSource
-
-extension WeatherView: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 3
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: K.DetailInfo.cellIdentifier, for: indexPath) as? DetailInfoCell,
-              let viewModel = viewModel else { return UICollectionViewCell() }
-        
-        cell.viewModel = viewModel.detailInfoCellViewModel(for: indexPath)
-        cell.cellIndex = indexPath.row
-        
-        return cell
-    }
-}
-
-// MARK: - UITableViewDelegate
-
-extension WeatherView: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return K.NextDaysInfo.heightForRow
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        return nextDaysHeaderView
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return K.NextDaysInfo.heightForHeader
-    }
-}
-
-// MARK: - UITableViewDataSource
-
-extension WeatherView: UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return API.countNextDays - 1
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: K.NextDaysInfo.cellIdentifier, for: indexPath) as? NextDaysCell,
-              let viewModel = viewModel else { return UITableViewCell() }
-        
-        cell.viewModel = viewModel.nextDaysCellViewModel(for: indexPath)
-        
-        return cell
     }
 }
 
@@ -417,12 +327,14 @@ extension WeatherView: UIScrollViewDelegate {
     }
 }
 
+// MARK: - WeatherViewModelDelegate
+
 extension WeatherView: WeatherViewModelDelegate {
     
     func updateUI(with weather: WeatherModel) {
         updateWeatherData(
             name: weather.cityName,
-            temp: weather.temperatureString,
+            temp: weather.temperature.roundDouble,
             images: weather.weatherInfo,
             description: weather.description,
             icon: weather.iconName.getIconURL

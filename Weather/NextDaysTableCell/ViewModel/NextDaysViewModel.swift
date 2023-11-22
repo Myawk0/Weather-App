@@ -7,14 +7,6 @@
 
 import Foundation
 
-protocol NextDaysViewModelType: AnyObject {
-    var infoNextDay: WeatherInfoNextDays! { get set }
-    
-    var iconName: URL? { get }
-    var degreesString: String { get }
-    var formattedDate: String? { get }
-}
-
 class NextDaysViewModel: NextDaysViewModelType {
 
     var infoNextDay: WeatherInfoNextDays!
@@ -28,7 +20,7 @@ class NextDaysViewModel: NextDaysViewModelType {
     }
     
     var degreesString: String {
-        return String(format: "%.0f", ceil(infoNextDay.avgTemperature)) + "°C"
+        return infoNextDay.avgTemperature.roundDouble + "°C"
     }
     
     var formattedDate: String? {

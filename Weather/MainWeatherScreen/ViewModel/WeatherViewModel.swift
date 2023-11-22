@@ -8,18 +8,6 @@
 import UIKit
 import CoreLocation
 
-
-protocol WeatherViewModelType: AnyObject {
-    
-    var delegate: WeatherViewModelDelegate? { get set }
-    var weatherViewController: WeatherView! { get set }
-    
-    var numberOfDetailedInfoItems: Int { get }
-    
-    func detailInfoCellViewModel(for indexPath: IndexPath) -> DetailInfoCellViewModelType?
-    func nextDaysCellViewModel(for indexPath: IndexPath) -> NextDaysViewModelType?
-}
-
 protocol WeatherViewModelDelegate: AnyObject {
     func didChangeLoadingState(_ isLoading: Bool)
     func updateUI(with weather: WeatherModel)
@@ -30,17 +18,19 @@ class WeatherViewModel: NSObject, WeatherViewModelType {
     weak var delegate: WeatherViewModelDelegate?
     weak var weatherViewController: WeatherView!
     
-    var details: WeatherDetailInfo?
-    var infoNextDays: [WeatherInfoNextDays]?
+    private var details: WeatherDetailInfo?
+    private var infoNextDays: [WeatherInfoNextDays]?
     
     private var networkManager = NetworkManager()
     private let locationManager = CLLocationManager()
     
-    var isLoading: Bool = false {
+    private var isLoading: Bool = false {
         didSet {
             delegate?.didChangeLoadingState(isLoading)
         }
     }
+    
+    // MARK: - Init
     
     override init() {
         super.init()
@@ -56,26 +46,67 @@ class WeatherViewModel: NSObject, WeatherViewModelType {
         getCurrentLocation()
     }
     
+    // MARK: - Delegates
+    
     func setupDelegates() {
         weatherViewController.delegate = self
         networkManager.delegate = self
         locationManager.delegate = self
     }
     
-    var numberOfDetailedInfoItems: Int {
+    // MARK: - Method to DetailInfoCellViewModel
+    
+    func detailInfoCellViewModel(for indexPath: IndexPath) -> DetailInfoViewModelType? {
+        guard let details = details else { return nil }
+        
+        return DetailInfoViewModel(for: indexPath.row, detailsInfo: details)
+    }
+    
+    // count of Detailed Items
+    func numberOfDetailedInfoItems() -> Int {
         return 3
     }
     
-    func detailInfoCellViewModel(for indexPath: IndexPath) -> DetailInfoCellViewModelType? {
-        guard let details = details else { return nil }
-        
-        return DetailInfoCellViewModel(for: indexPath.row, detailsInfo: details)
-    }
+    // MARK: - Method to NextDaysViewModel
     
     func nextDaysCellViewModel(for indexPath: IndexPath) -> NextDaysViewModelType? {
         guard let info = infoNextDays else { return nil }
         
         return NextDaysViewModel(info: info[indexPath.row])
+    }
+}
+
+// MARK: - UICollectionViewDataSource
+
+extension WeatherViewModel: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return numberOfDetailedInfoItems()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: K.DetailInfo.cellIdentifier, for: indexPath) as? DetailInfoCell else { return UICollectionViewCell() }
+        
+        cell.viewModel = detailInfoCellViewModel(for: indexPath)
+        cell.cellIndex = indexPath.row
+        
+        return cell
+    }
+}
+
+// MARK: - UITableViewDataSource
+
+extension WeatherViewModel: UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return API.countNextDays - 1
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: K.NextDaysInfo.cellIdentifier, for: indexPath) as? NextDaysCell else { return UITableViewCell() }
+        
+        cell.viewModel = nextDaysCellViewModel(for: indexPath)
+        
+        return cell
     }
 }
 
@@ -132,4 +163,3 @@ extension WeatherViewModel: CLLocationManagerDelegate {
         isLoading = false
     }
 }
-

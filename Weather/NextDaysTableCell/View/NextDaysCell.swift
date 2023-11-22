@@ -10,6 +10,8 @@ import Kingfisher
 
 class NextDaysCell: UITableViewCell {
     
+    // MARK: - Views
+    
     private lazy var mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -65,6 +67,8 @@ class NextDaysCell: UITableViewCell {
         return label
     }()
     
+    // MARK: - ViewModel
+    
     weak var viewModel: NextDaysViewModelType? {
         willSet(viewModel) {
             guard let viewModel = viewModel  else { return }
@@ -76,6 +80,8 @@ class NextDaysCell: UITableViewCell {
             )
         }
     }
+    
+    // MARK: - Init
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -89,11 +95,15 @@ class NextDaysCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Setup cell updated data
+    
     func setupCell(iconURL: URL?, temperature: String, date: String?) {
         weatherIcon.kf.setImage(with: iconURL)
         degreesLabel.text = temperature
         dateLabel.text = date
     }
+    
+    // MARK: - Subviews
     
     private func addSubviews() {
         contentView.addSubview(weatherIconView)
@@ -104,6 +114,8 @@ class NextDaysCell: UITableViewCell {
         dataStackView.addArrangedSubview(degreesLabel)
         dataStackView.addArrangedSubview(dateLabel)
     }
+    
+    // MARK: - Constraints
     
     private func applyConstraints() {
         
@@ -129,6 +141,8 @@ class NextDaysCell: UITableViewCell {
             make.top.bottom.equalToSuperview().inset(20)
         }
     }
+    
+    // MARK: - Methods to hide rows behind header while scrolling
     
     func maskCell(fromTop margin: CGFloat) {
         layer.mask = visibilityMask(withLocation: margin / frame.size.height)

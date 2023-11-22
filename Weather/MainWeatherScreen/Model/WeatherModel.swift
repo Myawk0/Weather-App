@@ -17,10 +17,6 @@ struct WeatherModel {
     let details: WeatherDetailInfo
     let infoNextDays: [WeatherInfoNextDays]
     
-    var temperatureString: String {
-        return String(format: "%.0f", ceil(temperature))
-    }
-    
     var weatherInfo: WeatherInfo {
         return WeatherInfo(weatherCode: weatherCode)
     }
