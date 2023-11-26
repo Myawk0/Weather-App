@@ -19,5 +19,14 @@ Stay ahead of the weather with our useful app, delivering accurate forecasts and
 #### In future updates:
 - add screen with more detailed information and graphs for various indicators
 - add more background pictures
-- add Onboarding pages when app open for the first time
+- add Onboarding pages when app is opened for the first time
 - maybe some UI changes
+
+### Images:
+
+<img width="200" height="400" src="https://github.com/Myawk0/Weather-App/assets/89804841/905fc504-1fc3-4a3d-8756-0a1de45eafd7">
+<img width="200" height="400" alt="image" src="https://github.com/Myawk0/Weather-App/assets/89804841/aa2357c3-0baa-4721-bb37-9916d31ee67b">
+<img width="200" height="400" alt="image" src="https://github.com/Myawk0/Weather-App/assets/89804841/5bc6284f-cfe7-4d59-a5ae-3501d0b70d52">
+
+
+
